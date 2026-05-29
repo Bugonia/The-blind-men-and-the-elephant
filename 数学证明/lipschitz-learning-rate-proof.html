@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lipschitz 常数小为什么允许更大的学习率</title>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']],
+        processEscapes: true
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1f2933;
+      --muted: #52606d;
+      --line: #d9e2ec;
+      --accent: #0f766e;
+      --soft: #f0fdfa;
+      --paper: #ffffff;
+      --bg: #f7fafc;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.75;
+    }
+
+    main {
+      width: min(920px, calc(100% - 32px));
+      margin: 40px auto;
+      padding: 48px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    h1 {
+      margin: 0 0 20px;
+      font-size: 30px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 34px 0 12px;
+      padding-top: 8px;
+      border-top: 1px solid var(--line);
+      font-size: 21px;
+      line-height: 1.4;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 12px 0;
+    }
+
+    ul {
+      margin: 12px 0 0 1.2em;
+      padding: 0;
+    }
+
+    li {
+      margin: 8px 0;
+    }
+
+    .summary {
+      margin: 24px 0 30px;
+      padding: 18px 20px;
+      border-left: 4px solid var(--accent);
+      background: var(--soft);
+      border-radius: 6px;
+    }
+
+    .summary strong {
+      color: var(--accent);
+    }
+
+    .math-scroll {
+      overflow-x: auto;
+      padding: 4px 0;
+    }
+
+    .note {
+      color: var(--muted);
+    }
+
+    @media (max-width: 640px) {
+      main {
+        width: 100%;
+        margin: 0;
+        padding: 24px 18px 36px;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      h2 {
+        font-size: 18px;
+      }
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      main {
+        width: auto;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        box-shadow: none;
+      }
+
+      h2 {
+        break-after: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Lipschitz 常数小为什么允许更大的学习率</h1>
+
+    <section class="summary">
+      <p><strong>核心结论：</strong>若目标函数的梯度是 \(L\)-Lipschitz 连续的，则梯度下降中保证单步下降的学习率通常满足</p>
+      <div class="math-scroll">\[
+        0&lt;\eta&lt;\frac{2}{L}.
+      \]</div>
+      <p>因此，\(L\) 越小，允许的学习率上界越大。</p>
+    </section>
+
+    <h2>1. 问题设定</h2>
+    <p>考虑目标函数 \(f(x)\)，梯度下降的更新规则为</p>
+    <div class="math-scroll">\[
+      x_{t+1}=x_t-\eta \nabla f(x_t),
+    \]</div>
+    <p>其中 \(\eta\) 是学习率。</p>
+    <p>假设 \(f\) 的梯度是 \(L\)-Lipschitz 连续的，即</p>
+    <div class="math-scroll">\[
+      \|\nabla f(x)-\nabla f(y)\|\le L\|x-y\|.
+    \]</div>
+    <p>这意味着梯度变化不会超过输入变化的 \(L\) 倍。\(L\) 越小，梯度场越平滑。</p>
+
+    <h2>2. 下降引理</h2>
+    <p>由梯度 Lipschitz 连续可得 \(f\) 是 \(L\)-smooth 函数，并满足下降引理：</p>
+    <div class="math-scroll">\[
+      f(y)\le f(x)+\nabla f(x)^\top (y-x)+\frac{L}{2}\|y-x\|^2.
+    \]</div>
+    <p>这个不等式说明：在点 \(x\) 附近，函数值可以被一个一阶项加二次误差项控制。二次误差项中的 \(L\) 决定了函数曲面的最大弯曲程度。</p>
+
+    <h2>3. 代入梯度下降更新</h2>
+    <p>令</p>
+    <div class="math-scroll">\[
+      y=x-\eta \nabla f(x).
+    \]</div>
+    <p>代入下降引理：</p>
+    <div class="math-scroll">\[
+    \begin{aligned}
+      f(x-\eta \nabla f(x))
+      &\le
+      f(x)+\nabla f(x)^\top(-\eta \nabla f(x))
+      +\frac{L}{2}\|-\eta \nabla f(x)\|^2 \\
+      &=
+      f(x)-\eta\|\nabla f(x)\|^2
+      +\frac{L\eta^2}{2}\|\nabla f(x)\|^2 \\
+      &=
+      f(x)-\eta\left(1-\frac{L\eta}{2}\right)\|\nabla f(x)\|^2.
+    \end{aligned}
+    \]</div>
+
+    <h2>4. 学习率条件</h2>
+    <p>为了保证目标函数下降，需要</p>
+    <div class="math-scroll">\[
+      \eta\left(1-\frac{L\eta}{2}\right)>0.
+    \]</div>
+    <p>由于 \(\eta&gt;0\)，因此只需</p>
+    <div class="math-scroll">\[
+      1-\frac{L\eta}{2}>0.
+    \]</div>
+    <p>于是得到</p>
+    <div class="math-scroll">\[
+      \eta<\frac{2}{L}.
+    \]</div>
+    <p>因此，允许的最大学习率与 Lipschitz 常数 \(L\) 成反比：</p>
+    <div class="math-scroll">\[
+      \eta_{\max}\propto \frac{1}{L}.
+    \]</div>
+
+    <h2>5. 更保守的常用选择</h2>
+    <p>实际分析中常用更保守的学习率范围：</p>
+    <div class="math-scroll">\[
+      0&lt;\eta\le \frac{1}{L}.
+    \]</div>
+    <p>此时</p>
+    <div class="math-scroll">\[
+      1-\frac{L\eta}{2}\ge \frac{1}{2},
+    \]</div>
+    <p>因此有更清晰的下降量下界：</p>
+    <div class="math-scroll">\[
+      f(x-\eta\nabla f(x))
+      \le
+      f(x)-\frac{\eta}{2}\|\nabla f(x)\|^2.
+    \]</div>
+
+    <h2>6. 直观解释</h2>
+    <ul>
+      <li>\(L\) 小：梯度变化平缓，函数曲面较光滑，可以迈更大的步。</li>
+      <li>\(L\) 大：梯度变化剧烈，函数曲面更陡或更弯，步长过大容易震荡或发散。</li>
+      <li>因此，Lipschitz 常数越小，理论上允许的稳定学习率越大。</li>
+    </ul>
+  </main>
+</body>
+</html>

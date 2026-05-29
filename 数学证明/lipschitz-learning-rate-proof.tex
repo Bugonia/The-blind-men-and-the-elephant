@@ -1,0 +1,140 @@
+\documentclass[11pt,fontset=fandol]{ctexart}
+
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{titlesec}
+
+\definecolor{ink}{HTML}{1F2933}
+\definecolor{muted}{HTML}{52606D}
+\definecolor{accent}{HTML}{0F766E}
+\definecolor{soft}{HTML}{F0Fdfa}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=accent,
+  urlcolor=accent
+}
+
+\titleformat{\section}
+  {\Large\bfseries\color{ink}}
+  {\thesection}{0.8em}{}
+
+\setlist[itemize]{leftmargin=1.5em}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.7em}
+
+\title{\bfseries Lipschitz 常数小为什么允许更大的学习率}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-2em}
+
+\begin{center}
+\colorbox{soft}{
+  \parbox{0.9\linewidth}{
+    \textbf{核心结论：}
+    若目标函数的梯度是 \(L\)-Lipschitz 连续的，则梯度下降中保证单步下降的学习率通常满足
+    \[
+      0<\eta<\frac{2}{L}.
+    \]
+    因此，\(L\) 越小，允许的学习率上界越大。
+  }
+}
+\end{center}
+
+\section{问题设定}
+
+考虑目标函数 \(f(x)\)，梯度下降的更新规则为
+\[
+  x_{t+1}=x_t-\eta \nabla f(x_t),
+\]
+其中 \(\eta\) 是学习率。
+
+假设 \(f\) 的梯度是 \(L\)-Lipschitz 连续的，即
+\[
+  \|\nabla f(x)-\nabla f(y)\|\le L\|x-y\|.
+\]
+这意味着梯度变化不会超过输入变化的 \(L\) 倍。\(L\) 越小，梯度场越平滑。
+
+\section{下降引理}
+
+由梯度 Lipschitz 连续可得 \(f\) 是 \(L\)-smooth 函数，并满足下降引理：
+\[
+  f(y)\le f(x)+\nabla f(x)^\top (y-x)+\frac{L}{2}\|y-x\|^2.
+\]
+
+这个不等式说明：在点 \(x\) 附近，函数值可以被一个一阶项加二次误差项控制。二次误差项中的 \(L\) 决定了函数曲面的最大弯曲程度。
+
+\section{代入梯度下降更新}
+
+令
+\[
+  y=x-\eta \nabla f(x).
+\]
+代入下降引理：
+\[
+\begin{aligned}
+  f(x-\eta \nabla f(x))
+  &\le
+  f(x)+\nabla f(x)^\top(-\eta \nabla f(x))
+  +\frac{L}{2}\|-\eta \nabla f(x)\|^2 \\
+  &=
+  f(x)-\eta\|\nabla f(x)\|^2
+  +\frac{L\eta^2}{2}\|\nabla f(x)\|^2 \\
+  &=
+  f(x)-\eta\left(1-\frac{L\eta}{2}\right)\|\nabla f(x)\|^2.
+\end{aligned}
+\]
+
+\section{学习率条件}
+
+为了保证目标函数下降，需要
+\[
+  \eta\left(1-\frac{L\eta}{2}\right)>0.
+\]
+由于 \(\eta>0\)，因此只需
+\[
+  1-\frac{L\eta}{2}>0.
+\]
+于是得到
+\[
+  \eta<\frac{2}{L}.
+\]
+
+因此，允许的最大学习率与 Lipschitz 常数 \(L\) 成反比：
+\[
+  \eta_{\max}\propto \frac{1}{L}.
+\]
+
+\section{更保守的常用选择}
+
+实际分析中常用更保守的学习率范围：
+\[
+  0<\eta\le \frac{1}{L}.
+\]
+此时
+\[
+  1-\frac{L\eta}{2}\ge \frac{1}{2},
+\]
+因此有更清晰的下降量下界：
+\[
+  f(x-\eta\nabla f(x))
+  \le
+  f(x)-\frac{\eta}{2}\|\nabla f(x)\|^2.
+\]
+
+\section{直观解释}
+
+\begin{itemize}
+  \item \(L\) 小：梯度变化平缓，函数曲面较光滑，可以迈更大的步。
+  \item \(L\) 大：梯度变化剧烈，函数曲面更陡或更弯，步长过大容易震荡或发散。
+  \item 因此，Lipschitz 常数越小，理论上允许的稳定学习率越大。
+\end{itemize}
+
+\end{document}
